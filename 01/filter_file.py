@@ -9,6 +9,7 @@ def filter_file(file, search_words, stop_words):
     else:
         yield from process_file(file, search_words, stop_words)
 
+
 def process_file(f, search_words, stop_words):
 
     for line in f:
@@ -17,6 +18,6 @@ def process_file(f, search_words, stop_words):
 
         if words & stop_words:
             continue
-        
+
         if words & search_words:
             yield line.strip()

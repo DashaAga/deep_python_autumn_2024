@@ -1,6 +1,10 @@
 class SomeModel:
+
     def predict(self, message: str) -> float:
-        pass
+        return message[0]
+
+    def some_function(self, smt: int) -> int:
+        return smt
 
 
 def predict_message_mood(
@@ -8,14 +12,15 @@ def predict_message_mood(
     bad_thresholds: float = 0.3,
     good_thresholds: float = 0.8,
 ) -> str:
-    
+
     model = SomeModel()
 
     prediction = model.predict(message)
 
     if prediction < bad_thresholds:
         return "неуд"
-    elif prediction > good_thresholds:
+
+    if prediction > good_thresholds:
         return "отл"
-    else:
-        return "норм"
+
+    return "норм"
