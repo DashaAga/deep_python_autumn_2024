@@ -16,7 +16,7 @@ class TestProcessJson(unittest.TestCase):
 
         callback.assert_any_call("key1", "WORD1")
         callback.assert_any_call("key1", "word2")
-        self.assertEqual(callback.call_count, 2) 
+        self.assertEqual(callback.call_count, 2)
 
     def test_no_callback_when_no_matching_tokens(self):
         json_str = '{"key1": "test", "key2": "Another test"}'
@@ -72,6 +72,7 @@ class TestProcessJson(unittest.TestCase):
         process_json(json_str, required_keys, None, callback)
 
         callback.assert_not_called()
+
 
 if __name__ == '__main__':
     unittest.main()
