@@ -1,6 +1,5 @@
 import unittest
-from unittest.mock import patch, call
-import logging
+from unittest.mock import patch
 from retry_deco import retry_deco
 
 
@@ -52,7 +51,8 @@ class TestRetryDeco(unittest.TestCase):
                                      'with positional args = (), '
                                      'keyword kwargs = {}, attempt = 1')
         mock_logging.assert_any_call('Attempt 1 '
-                                     'exception = ValueError: Test ignored error')
+                                     'exception = ValueError: '
+                                     'Test ignored error')
 
     @patch('logging.info')
     def test_retry_on_exception(self, mock_logging):
