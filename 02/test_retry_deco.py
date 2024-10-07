@@ -1,9 +1,9 @@
 import unittest
 import logging
 from unittest.mock import patch
-logging.basicConfig(level=logging.INFO)
-
 from retry_deco import retry_deco
+
+logging.basicConfig(level=logging.INFO)
 
 
 class TestRetryDecorator(unittest.TestCase):
@@ -24,7 +24,7 @@ class TestRetryDecorator(unittest.TestCase):
 
     @patch('logging.info')
     def test_retry_fails_and_succeeds(self, mock_log):
-        """Тестирует, что функция падает один раз и успешно выполняется при повторе."""
+        """Функция падает один раз и успешно выполняется при повторе."""
         attempts = []
 
         @retry_deco(retries=3)
@@ -61,6 +61,7 @@ class TestRetryDecorator(unittest.TestCase):
             sample_func()
 
         self.assertEqual(mock_log.call_count, 2)
+
 
 if __name__ == '__main__':
     unittest.main()
