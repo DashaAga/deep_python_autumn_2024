@@ -3,17 +3,21 @@ from unittest.mock import patch, call
 import logging
 from retry_deco import retry_deco
 
+
 @retry_deco(retries=3)
 def test_function(a, b):
     return a + b
+
 
 @retry_deco(retries=3)
 def function_with_exception():
     raise ValueError("Test error")
 
+
 @retry_deco(retries=2, ignored_exceptions=[ValueError])
 def function_with_ignored_exception():
     raise ValueError("Test ignored error")
+
 
 class TestRetryDeco(unittest.TestCase):
     @patch('logging.info')
@@ -21,7 +25,9 @@ class TestRetryDeco(unittest.TestCase):
         result = test_function(4, 2)
         self.assertEqual(result, 6)
 
-        mock_logging.assert_any_call('Run "test_function" with positional args = (4, 2), keyword kwargs = {}, attempt = 1')
+        mock_logging.assert_any_call('Run "test_function" '
+                                     'with positional args = (4, 2), '
+                                     'keyword kwargs = {}, attempt = 1')
         mock_logging.assert_any_call('Attempt 1 result = 6')
 
     @patch('logging.info')
@@ -30,7 +36,9 @@ class TestRetryDeco(unittest.TestCase):
             function_with_exception()
 
         self.assertEqual(mock_logging.call_count, 6)
-        mock_logging.assert_any_call('Run "function_with_exception" with positional args = (), keyword kwargs = {}, attempt = 1')
+        mock_logging.assert_any_call('Run "function_with_exception" '
+                                     'with positional args = (), '
+                                     'keyword kwargs = {}, attempt = 1')
         mock_logging.assert_any_call('Attempt 1 exception = ValueError: Test error')
 
     @patch('logging.info')
@@ -39,7 +47,9 @@ class TestRetryDeco(unittest.TestCase):
             function_with_ignored_exception()
 
         self.assertEqual(mock_logging.call_count, 2)
-        mock_logging.assert_any_call('Run "function_with_ignored_exception" with positional args = (), keyword kwargs = {}, attempt = 1')
+        mock_logging.assert_any_call('Run "function_with_ignored_exception" '
+                                     'with positional args = (), '
+                                     'keyword kwargs = {}, attempt = 1')
         mock_logging.assert_any_call('Attempt 1 exception = ValueError: Test ignored error')
 
     @patch('logging.info')
@@ -52,7 +62,9 @@ class TestRetryDeco(unittest.TestCase):
             fail_function()
 
         self.assertEqual(mock_logging.call_count, 6)
-        mock_logging.assert_any_call('Run "fail_function" with positional args = (), keyword kwargs = {}, attempt = 1')
+        mock_logging.assert_any_call('Run "fail_function" '
+                                     'with positional args = (), '
+                                     'keyword kwargs = {}, attempt = 1')
         mock_logging.assert_any_call('Attempt 1 exception = RuntimeError: Test error')
 
     @patch('logging.info')
@@ -70,8 +82,11 @@ class TestRetryDeco(unittest.TestCase):
         self.assertEqual(result, 'Success')
 
         self.assertEqual(mock_logging.call_count, 6)
-        mock_logging.assert_any_call('Run "sometimes_fail" with positional args = (), keyword kwargs = {}, attempt = 1')
-        mock_logging.assert_any_call('Attempt 1 exception = RuntimeError: Temporary error')
+        mock_logging.assert_any_call('Run "sometimes_fail" '
+                                     'with positional args = (), '
+                                     'keyword kwargs = {}, attempt = 1')
+        mock_logging.assert_any_call('Attempt 1 exception '
+                                     '= RuntimeError: Temporary error')
         mock_logging.assert_any_call('Attempt 3 result = Success')
 
     @patch('logging.info')
