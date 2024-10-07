@@ -28,7 +28,7 @@ def retry_deco(retries, ignored_exceptions=None):
                     raise
                 except (RuntimeError, ValueError, TypeError) as ex:
                     logging.info('Attempt %d exception = %s: %s',
-                    attempt, type(ex).__name__, ex)
+                                 attempt, type(ex).__name__, ex)
                     if attempt == retries:
                         raise
                     attempt += 1
