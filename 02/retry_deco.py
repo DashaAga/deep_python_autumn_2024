@@ -15,17 +15,20 @@ def retry_deco(retries, ignored_exceptions=None):
             while attempt <= retries:
                 try:
                     logging.info(
-                        'Run "%s" with positional args = %s, keyword kwargs = %s, attempt = %d',
+                        'Run "%s" with positional args = %s, '
+                        'keyword kwargs = %s, attempt = %d',
                         func.__name__, args, kwargs, attempt
                     )
                     result = func(*args, **kwargs)
                     logging.info('Attempt %d result = %s', attempt, result)
                     return result
-                except ignored_exceptions as ex:
-                    logging.info('Attempt %d exception = %s: %s', attempt, type(ex).__name__, ex)
+                except tuple(ignored_exceptions) as ex:
+                    logging.info('Attempt %d exception = %s: %s',
+                                 attempt, type(ex).__name__, ex)
                     raise
                 except (RuntimeError, ValueError, TypeError) as ex:
-                    logging.info('Attempt %d exception = %s: %s', attempt, type(ex).__name__, ex)
+                    logging.info('Attempt %d exception = %s: %s',
+                                 attempt, type(ex).__name__, ex)
                     if attempt == retries:
                         raise
                     attempt += 1
