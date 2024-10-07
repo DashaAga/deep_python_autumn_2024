@@ -22,13 +22,13 @@ def retry_deco(retries, ignored_exceptions=None):
                     result = func(*args, **kwargs)
                     logging.info('Attempt %d result = %s', attempt, result)
                     return result
-                except tuple(ignored_exceptions) as ex:
+                except ignored_exceptions as ex:
                     logging.info('Attempt %d exception = %s: %s',
                                  attempt, type(ex).__name__, ex)
                     raise
                 except (RuntimeError, ValueError, TypeError) as ex:
                     logging.info('Attempt %d exception = %s: %s',
-                                 attempt, type(ex).__name__, ex)
+                    attempt, type(ex).__name__, ex)
                     if attempt == retries:
                         raise
                     attempt += 1

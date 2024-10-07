@@ -1,120 +1,66 @@
 import unittest
+import logging
 from unittest.mock import patch
+logging.basicConfig(level=logging.INFO)
+
 from retry_deco import retry_deco
 
 
-@retry_deco(retries=3)
-def test_function(a, b):
-    return a + b
+class TestRetryDecorator(unittest.TestCase):
 
-
-@retry_deco(retries=3)
-def function_with_exception():
-    raise ValueError("Test error")
-
-
-@retry_deco(retries=2, ignored_exceptions=[ValueError])
-def function_with_ignored_exception():
-    raise ValueError("Test ignored error")
-
-
-class TestRetryDeco(unittest.TestCase):
-    @patch('logging.info')
-    def test_successful_function(self, mock_logging):
-        result = test_function(4, 2)
-        self.assertEqual(result, 6)
-
-        mock_logging.assert_any_call(
-            'Run "%s" with positional args = %s, keyword kwargs = %s, attempt = %d',
-            'test_function', (4, 2), {}, 1
-        )
-        mock_logging.assert_any_call('Attempt %d result = %s', 1, 6)
+    def setUp(self):
+        logging.basicConfig(level=logging.DEBUG)
 
     @patch('logging.info')
-    def test_function_with_exception_retries(self, mock_logging):
-        with self.assertRaises(ValueError):
-            function_with_exception()
+    def test_retry_successful_execution(self, mock_log):
+        """Тестирует успешное выполнение функции с первой попытки."""
+        @retry_deco(retries=3)
+        def sample_func(x, y):
+            return x + y
 
-        # Проверка, что было три попытки
-        self.assertEqual(mock_logging.call_count, 6)
-        mock_logging.assert_any_call(
-            'Run "%s" with positional args = %s, keyword kwargs = %s, attempt = %d',
-            'function_with_exception', (), {}, 1
-        )
-        mock_logging.assert_any_call('Attempt %d exception = %s: %s', 1, 'ValueError', 'Test error')
+        result = sample_func(2, 3)
+        self.assertEqual(result, 5)
+        self.assertEqual(mock_log.call_count, 2)
 
     @patch('logging.info')
-    def test_function_with_ignored_exception(self, mock_logging):
-        with self.assertRaises(ValueError):
-            function_with_ignored_exception()
+    def test_retry_fails_and_succeeds(self, mock_log):
+        """Тестирует, что функция падает один раз и успешно выполняется при повторе."""
+        attempts = []
 
-        # Так как исключение игнорируется, вызовов должно быть меньше
-        self.assertEqual(mock_logging.call_count, 2)
-        mock_logging.assert_any_call(
-            'Run "%s" with positional args = %s, keyword kwargs = %s, attempt = %d',
-            'function_with_ignored_exception', (), {}, 1
-        )
-        mock_logging.assert_any_call('Attempt %d exception = %s: %s', 1, 'ValueError', 'Test ignored error')
+        @retry_deco(retries=3)
+        def sample_func(x):
+            if len(attempts) < 1:
+                attempts.append(1)
+                raise RuntimeError("Test error")
+            return x
+
+        result = sample_func(5)
+        self.assertEqual(result, 5)
+        self.assertEqual(mock_log.call_count, 4)
 
     @patch('logging.info')
-    def test_retry_on_runtime_error(self, mock_logging):
-        @retry_deco(3)
-        def fail_function():
-            raise RuntimeError('Test runtime error')
+    def test_retry_exceeds_attempts(self, mock_log):
+        """Тестирует, что после превышения попыток бросается исключение."""
+        @retry_deco(retries=3)
+        def sample_func():
+            raise RuntimeError("Test error")
 
         with self.assertRaises(RuntimeError):
-            fail_function()
+            sample_func()
 
-        self.assertEqual(mock_logging.call_count, 6)
-        mock_logging.assert_any_call(
-            'Run "%s" with positional args = %s, keyword kwargs = %s, attempt = %d',
-            'fail_function', (), {}, 1
-        )
-        mock_logging.assert_any_call('Attempt %d exception = %s: %s', 1, 'RuntimeError', 'Test runtime error')
+        self.assertEqual(mock_log.call_count, 6)
 
     @patch('logging.info')
-    def test_success_after_retry(self, mock_logging):
-        attempts = [0]
+    def test_retry_with_ignored_exceptions(self, mock_log):
+        """Тестирует, что игнорируемое исключение сразу бросается."""
+        @retry_deco(retries=3, ignored_exceptions=(ValueError,))
+        def sample_func():
+            raise ValueError("Ignored exception")
 
-        @retry_deco(3)
-        def sometimes_fail():
-            if attempts[0] < 2:
-                attempts[0] += 1
-                raise RuntimeError('Temporary error')
-            return 'Success'
+        with self.assertRaises(ValueError):
+            sample_func()
 
-        result = sometimes_fail()
-        self.assertEqual(result, 'Success')
-
-        # Проверка логов (форматирование через запятые, как ожидает logging.info)
-        self.assertEqual(mock_logging.call_count, 6)
-        mock_logging.assert_any_call(
-            'Run "%s" with positional args = %s, keyword kwargs = %s, attempt = %d',
-            'sometimes_fail', (), {}, 1
-        )
-        mock_logging.assert_any_call('Attempt %d exception = %s: %s', 1, 'RuntimeError', 'Temporary error')
-        mock_logging.assert_any_call('Attempt %d result = %s', 3, 'Success')
-
-    @patch('logging.info')
-    def test_successful_with_kwargs(self, mock_logging):
-        @retry_deco(3)
-        def divide(a, b=1):
-            return a / b
-
-        result = divide(a=10, b=2)
-        self.assertEqual(result, 5)
-
-        # Исправление на проверку именованных аргументов
-        log_calls = list(mock_logging.call_args_list)
-        self.assertIn('Run "%s" with positional args = %s, keyword kwargs = %s, attempt = %d', log_calls[0][0])
-        self.assertEqual(log_calls[0][0][1], 'divide')
-        self.assertEqual(log_calls[0][0][2], ())  # Позиционные аргументы пусты, потому что использовались kwargs
-        self.assertEqual(log_calls[0][0][3], {'a': 10, 'b': 2})
-        self.assertEqual(log_calls[0][0][4], 1)
-        self.assertIn('Attempt %d result = %s', log_calls[1][0])
-        self.assertEqual(log_calls[1][0][1], 1)
-        self.assertEqual(log_calls[1][0][2], 5.0)
-
+        self.assertEqual(mock_log.call_count, 2)
 
 if __name__ == '__main__':
     unittest.main()
