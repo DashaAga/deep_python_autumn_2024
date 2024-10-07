@@ -3,6 +3,7 @@ import logging
 
 logging.basicConfig(level=logging.INFO)
 
+
 def retry_deco(retries, ignored_exceptions=None):
     if ignored_exceptions is None:
         ignored_exceptions = ()
@@ -23,11 +24,11 @@ def retry_deco(retries, ignored_exceptions=None):
                 except ignored_exceptions as ex:
                     logging.info('Attempt %d exception = %s: %s', attempt, type(ex).__name__, ex)
                     raise
-                except Exception as ex:
+                except (RuntimeError, ValueError, TypeError) as ex:
                     logging.info('Attempt %d exception = %s: %s', attempt, type(ex).__name__, ex)
                     if attempt == retries:
                         raise
                     attempt += 1
-            return None  
+            return None
         return wrapper
     return decorator
