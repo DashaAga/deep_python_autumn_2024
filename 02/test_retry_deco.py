@@ -39,7 +39,8 @@ class TestRetryDeco(unittest.TestCase):
         mock_logging.assert_any_call('Run "function_with_exception" '
                                      'with positional args = (), '
                                      'keyword kwargs = {}, attempt = 1')
-        mock_logging.assert_any_call('Attempt 1 exception = ValueError: Test error')
+        mock_logging.assert_any_call('Attempt 1 '
+                                     'exception = ValueError: Test error')
 
     @patch('logging.info')
     def test_function_with_ignored_exception(self, mock_logging):
@@ -50,7 +51,8 @@ class TestRetryDeco(unittest.TestCase):
         mock_logging.assert_any_call('Run "function_with_ignored_exception" '
                                      'with positional args = (), '
                                      'keyword kwargs = {}, attempt = 1')
-        mock_logging.assert_any_call('Attempt 1 exception = ValueError: Test ignored error')
+        mock_logging.assert_any_call('Attempt 1 '
+                                     'exception = ValueError: Test ignored error')
 
     @patch('logging.info')
     def test_retry_on_exception(self, mock_logging):
@@ -65,7 +67,8 @@ class TestRetryDeco(unittest.TestCase):
         mock_logging.assert_any_call('Run "fail_function" '
                                      'with positional args = (), '
                                      'keyword kwargs = {}, attempt = 1')
-        mock_logging.assert_any_call('Attempt 1 exception = RuntimeError: Test error')
+        mock_logging.assert_any_call('Attempt 1 '
+                                     'exception = RuntimeError: Test error')
 
     @patch('logging.info')
     def test_success_after_retry(self, mock_logging):
@@ -103,6 +106,7 @@ class TestRetryDeco(unittest.TestCase):
         self.assertIn('Run "divide"', log_calls[0][0][0])
         self.assertIn('attempt = 1', log_calls[0][0][0])
         self.assertIn('Attempt 1 result = 5.0', log_calls[1][0][0])
+
 
 if __name__ == '__main__':
     unittest.main()
