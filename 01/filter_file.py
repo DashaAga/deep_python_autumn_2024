@@ -13,11 +13,10 @@ def filter_file(file, search_words, stop_words):
 def process_file(f, search_words, stop_words):
 
     for line in f:
+        line_clean = line.strip().lower()
 
-        words = set(line.strip().lower().split())
-
-        if words & stop_words:
+        if any(stop_word in line_clean for stop_word in stop_words):
             continue
 
-        if words & search_words:
+        if any(search_word in line_clean for search_word in search_words):
             yield line.strip()

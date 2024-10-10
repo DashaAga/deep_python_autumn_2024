@@ -38,9 +38,12 @@ class TestFilterFile(unittest.TestCase):
         search_words = ["голубом"]
         stop_words = ["моря"]
 
+        expected_lines = []
+
         result_lines = list(filter_file(self.file_obj,
                                         search_words, stop_words))
-        self.assertNotIn("В тумане моря голубом", result_lines)
+
+        self.assertEqual(result_lines, expected_lines)
 
     def test_empty(self):
 
@@ -76,6 +79,69 @@ class TestFilterFile(unittest.TestCase):
         ]
 
         result_lines = list(filter_file(self.file_obj, search_words, []))
+        self.assertEqual(result_lines, expected_lines)
+
+    def test_search_word_matches_whole_line(self):
+
+        search_words = ["Белеет парус одинокий"]
+        stop_words = []
+
+        expected_lines = [
+            "Белеет парус одинокий"
+        ]
+
+        result_lines = list(filter_file(self.file_obj,
+                                        search_words, stop_words))
+        self.assertEqual(result_lines, expected_lines)
+
+    def test_stop_word_matches_whole_line(self):
+
+        search_words = ["мачта"]
+        stop_words = ["И мачта гнется и гнется"]
+
+        expected_lines = []
+
+        result_lines = list(filter_file(self.file_obj,
+                                        search_words, stop_words))
+        self.assertEqual(result_lines, expected_lines)
+
+    def test_search_and_stop_words_overlap(self):
+
+        search_words = ["счастия"]
+        stop_words = ["счастия"]
+
+        expected_lines = []
+
+        result_lines = list(filter_file(self.file_obj,
+                                        search_words, stop_words))
+        self.assertEqual(result_lines, expected_lines)
+
+    def test_line_with_only_stop_word(self):
+
+        search_words = ["ветер"]
+        stop_words = ["ветер"]
+
+        file_content = "ветер"
+        file_obj = StringIO(file_content)
+
+        expected_lines = []
+
+        result_lines = list(filter_file(file_obj,
+                                        search_words, stop_words))
+        self.assertEqual(result_lines, expected_lines)
+
+    def test_line_with_only_search_word(self):
+
+        search_words = ["ветер"]
+        stop_words = []
+
+        file_content = "ветер"
+        file_obj = StringIO(file_content)
+
+        expected_lines = ["ветер"]
+
+        result_lines = list(filter_file(file_obj,
+                                        search_words, stop_words))
         self.assertEqual(result_lines, expected_lines)
 
 
